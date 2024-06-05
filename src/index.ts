@@ -3,24 +3,33 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import sqlite3 from "sqlite3";
 import { v4 } from 'uuid';
+import dotenv from 'dotenv';
+
 import { RequestBody, ResponseData, RowData } from "./types";
 
-const sql = sqlite3?.verbose();
-const port = 8080;
+dotenv.config();
+
+const isDev = process.env.MODE === 'dev';
+const port = process.env.PORT;
+
 const app = express();
+const sql = sqlite3?.verbose();
+
+const origin = isDev ? 'http://localhost:5173' : 'https://regularjpg-diary-front-8850.twc1.net';
+const dbName = isDev ? 'dbDEV' : 'dbPROD';
 
 app.use(bodyParser.json());
 
-const db = new sql.Database('src/database', (err: any) => {
+const db = new sql.Database(`src/${dbName}`, (err: any) => {
   if (err) {
     console.log(err.message)
     return;
   }
-  console.log('Connected to database')
+  console.log(`Connected to database - ${dbName}`)
 });
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Разрешить доступ только с example.com
+  origin: origin, // Разрешить доступ только с example.com
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Разрешенные методы
   allowedHeaders: ['Content-Type', 'Authorization'], // Разрешенные заголовки
   credentials: true, // Разрешить отправку куки
